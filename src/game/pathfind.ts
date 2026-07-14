@@ -15,9 +15,13 @@ export function findPath(
   const key = (p: Point) => `${p.x},${p.y}`;
   const h = (p: Point) => Math.abs(p.x - goal.x) + Math.abs(p.y - goal.y);
 
-  const open = new Map<string, { p: Point; g: number; f: number; parent: string | null }>();
+  type Node = { p: Point; g: number; f: number; parent: string | null };
+  const all = new Map<string, Node>();
+  const open = new Map<string, Node>();
   const closed = new Set<string>();
-  open.set(key(start), { p: start, g: 0, f: h(start), parent: null });
+  const startNode: Node = { p: start, g: 0, f: h(start), parent: null };
+  open.set(key(start), startNode);
+  all.set(key(start), startNode);
 
   const neighbors = (p: Point): Point[] => {
     const out: Point[] = [];
@@ -41,15 +45,12 @@ export function findPath(
     const current = open.get(currentKey)!;
     if (current.p.x === goal.x && current.p.y === goal.y) {
       const path: Point[] = [];
-      let n: typeof current | undefined = current;
-      while (n) {
+      let n: Node | undefined = current;
+      while (n && n.parent) {
         path.push(n.p);
-        n = n.parent ? open.get(n.parent) ?? { p: parseKey(n.parent), g: 0, f: 0, parent: null } : undefined;
-        if (n && n.parent === null && n.p.x === start.x && n.p.y === start.y) break;
+        n = all.get(n.parent);
       }
       path.reverse();
-      // remove starting cell
-      if (path.length && path[0].x === start.x && path[0].y === start.y) path.shift();
       return path;
     }
     open.delete(currentKey);
@@ -62,14 +63,11 @@ export function findPath(
       const tentative = current.g + step;
       const existing = open.get(nk);
       if (!existing || tentative < existing.g) {
-        open.set(nk, { p: nb, g: tentative, f: tentative + h(nb), parent: currentKey });
+        const node: Node = { p: nb, g: tentative, f: tentative + h(nb), parent: currentKey };
+        open.set(nk, node);
+        all.set(nk, node);
       }
     }
   }
   return [];
-}
-
-function parseKey(k: string): Point {
-  const [x, y] = k.split(",").map(Number);
-  return { x, y };
 }
