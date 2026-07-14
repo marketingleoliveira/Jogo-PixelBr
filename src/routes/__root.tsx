@@ -81,9 +81,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "description", content: "Entre no Pixel Hotel: crie seu avatar, decore seu quarto e converse com outros habitantes em um mundo isométrico em pixel art." },
       { name: "author", content: "Pixel Hotel" },
       { property: "og:title", content: "Pixel Hotel — o hotel virtual em pixel art" },
-      { property: "og:description", content: "Crie seu avatar, entre em um quarto isométrico e converse com outros habitantes." },
+      { property: "og:description", content: "Entre no Pixel Hotel: crie seu avatar, decore seu quarto e converse com outros habitantes em um mundo isométrico em pixel art." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Pixel Hotel — o hotel virtual em pixel art" },
+      { name: "twitter:description", content: "Entre no Pixel Hotel: crie seu avatar, decore seu quarto e converse com outros habitantes em um mundo isométrico em pixel art." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f9d509ce-2549-45f9-b739-30489f4ce452/id-preview-b76b85e5--47b555c6-6135-4fa1-a751-c29bd36be2b1.lovable.app-1784046141678.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f9d509ce-2549-45f9-b739-30489f4ce452/id-preview-b76b85e5--47b555c6-6135-4fa1-a751-c29bd36be2b1.lovable.app-1784046141678.png" },
     ],
     links: [
       {
