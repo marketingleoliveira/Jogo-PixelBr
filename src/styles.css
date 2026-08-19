@@ -204,3 +204,40 @@
   filter: blur(1px);
 }
 
+
+/* --- Landing (Habbo-style portal) --- */
+.wordmark {
+  font-family: var(--font-display);
+  color: white;
+  text-shadow:
+    3px 0 0 var(--color-border), -3px 0 0 var(--color-border),
+    0 3px 0 var(--color-border), 0 -3px 0 var(--color-border),
+    3px 3px 0 var(--color-border), -3px -3px 0 var(--color-border),
+    3px -3px 0 var(--color-border), -3px 3px 0 var(--color-border),
+    0 8px 0 oklch(0.20 0.03 250 / 0.45);
+}
+.card-pixel {
+  background: var(--color-panel);
+  border: 3px solid var(--color-border);
+  box-shadow: 5px 5px 0 0 var(--color-border);
+  transition: transform 100ms;
+}
+.card-pixel:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 0 var(--color-border); }
+.tag-pixel {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  padding: 4px 8px;
+  border: 2px solid var(--color-border);
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  display: inline-block;
+}
+.topbar {
+  background: var(--color-border);
+  color: white;
+  border-bottom: 3px solid oklch(1 0 0 / 0.15);
+}
+@keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.floaty { animation: floaty 3.5s ease-in-out infinite; }
+@keyframes driftX { from { transform: translateX(-10vw); } to { transform: translateX(110vw); } }
+.cloud-drift { animation: driftX linear infinite; }
