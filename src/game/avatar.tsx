@@ -100,6 +100,11 @@ export function AvatarSprite({
         </>
       )}
 
+      {/* emotes/gestos */}
+      <g className="emote-layer">
+        {/* Adicionado via CSS classes para animação */}
+      </g>
+
       {/* hair */}
       {figure.hair === "short" && (
         <>

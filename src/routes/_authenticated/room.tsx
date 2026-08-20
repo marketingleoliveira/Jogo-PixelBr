@@ -32,6 +32,8 @@ function RoomPage() {
   const saveProfileAvatar = useServerFn(saveAvatar);
   const fetchFurniture = useServerFn(getRoomFurniture);
   const doPickup = useServerFn(pickupFurniture);
+  const doRotate = useServerFn(rotateFurniture);
+  const doMove = useServerFn(moveFurniture);
   
   const [profile, setProfile] = useState<null | {
     id: string; habbo_name: string; motto: string; figure: Figure; last_x: number; last_y: number; onboarded: boolean; coins?: number; gender?: string;
@@ -47,6 +49,7 @@ function RoomPage() {
   const [showTutorial, setShowTutorial] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const [unlockTrigger, setUnlockTrigger] = useState(0);
+  const [selectedFurni, setSelectedFurni] = useState<string | null>(null);
   const rewardFn = useServerFn(rewardTimeCoins);
 
 
@@ -172,6 +175,15 @@ function RoomPage() {
     }
   };
 
+  const handleFurnitureRotate = async (id: string, dir: number) => {
+    try {
+      await doRotate({ data: { roomFurnitureId: id, direction: dir } });
+      refreshFurniture();
+    } catch (e) {
+      toast.error("Erro ao rotacionar");
+    }
+  };
+
   const finishTutorial = () => {
     setShowTutorial(false);
     localStorage.setItem('ph_tutorial_seen', 'true');
@@ -240,6 +252,7 @@ function RoomPage() {
           unlockTrigger={unlockTrigger}
           furniture={roomFurniture}
           onFurnitureClick={handleFurnitureClick}
+          onFurnitureRotate={handleFurnitureRotate}
           isDebug={isDebugMode}
           isEditMode={isEditMode}
         />

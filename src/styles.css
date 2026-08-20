@@ -160,6 +160,35 @@
   border-top-color: var(--color-border);
 }
 
+
+/* Emotes */
+.avatar-dance {
+  animation: habbo-dance 0.5s infinite alternate ease-in-out;
+}
+
+@keyframes habbo-dance {
+  from { transform: translateY(0) rotate(-2deg); }
+  to { transform: translateY(-4px) rotate(2deg); }
+}
+
+.avatar-wave {
+  animation: habbo-wave 1s infinite ease-in-out;
+}
+
+@keyframes habbo-wave {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(5deg) translateX(2px); }
+}
+
+.avatar-jump {
+  animation: habbo-jump 0.6s infinite ease-in-out;
+}
+
+@keyframes habbo-jump {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
 .habbo-name-plate {
   position: absolute;
   left: 50%;
