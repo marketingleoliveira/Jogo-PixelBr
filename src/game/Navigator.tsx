@@ -4,8 +4,15 @@ import { AvatarSprite, type Figure } from "./avatar";
 import { Link } from "@tanstack/react-router";
 
 export function Navigator({ currentRoomId, onClose }: { currentRoomId: string; onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<'public' | 'users'>('public');
   const [onlineUsers, setOnlineUsers] = useState<{ id: string; habbo_name: string; figure: Figure; motto: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const PUBLIC_ROOMS = [
+    { id: 'public-lobby', name: 'Lobby Principal', motto: 'O coração do hotel', color: 'var(--color-tile)' },
+    { id: 'public-cafe', name: 'Café do Hotel', motto: 'Um lugar para relaxar', color: 'var(--color-accent)' },
+    { id: 'public-pool', name: 'Piscina', motto: 'Mergulhe na diversão', color: 'var(--color-sky-a)' },
+  ];
 
   useEffect(() => {
     const fetchOnline = async () => {
@@ -34,35 +41,76 @@ export function Navigator({ currentRoomId, onClose }: { currentRoomId: string; o
           <button onClick={onClose} className="btn-pixel !p-1 !min-h-0">X</button>
         </div>
         
+        <div className="flex border-b-2 border-border">
+          <button 
+            onClick={() => setActiveTab('public')} 
+            className={`flex-1 p-2 display text-[0.5rem] ${activeTab === 'public' ? 'bg-primary/20' : 'bg-transparent'}`}
+          >
+            PÚBLICOS
+          </button>
+          <button 
+            onClick={() => setActiveTab('users')} 
+            className={`flex-1 p-2 display text-[0.5rem] ${activeTab === 'users' ? 'bg-primary/20' : 'bg-transparent'}`}
+          >
+            USUÁRIOS
+          </button>
+        </div>
+        
         <div className="flex-1 overflow-y-auto p-3">
-          <h3 className="display text-[0.6rem] mb-3">QUARTOS ONLINE AGORA</h3>
-          {loading ? (
-            <div className="text-center py-4 opacity-70 italic">Buscando quartos...</div>
-          ) : onlineUsers.length === 0 ? (
-            <div className="text-center py-4 opacity-70 italic">Nenhum quarto ativo no momento.</div>
-          ) : (
+          {activeTab === 'public' ? (
             <div className="grid gap-2">
-              {onlineUsers.map((user) => (
+              <h3 className="display text-[0.55rem] mb-2">QUARTOS OFICIAIS</h3>
+              {PUBLIC_ROOMS.map((room) => (
                 <Link
-                  key={user.id}
+                  key={room.id}
                   to="/room"
-                  search={{ owner: user.id }}
+                  search={{ owner: room.id }}
                   onClick={onClose}
-                  className={`card-pixel p-3 flex items-center gap-3 hover:bg-primary/5 transition-colors ${currentRoomId === user.id ? 'border-primary' : ''}`}
+                  className={`card-pixel p-3 flex items-center gap-3 hover:bg-primary/5 transition-colors ${currentRoomId === room.id ? 'border-primary' : ''}`}
                 >
-                  <div className="scale-75 -ml-2 -mr-2">
-                    <AvatarSprite figure={user.figure} size={40} />
-                  </div>
+                  <div className="w-10 h-10 border-2 border-border shrink-0" style={{ background: room.color }} />
                   <div className="flex-1 min-w-0">
-                    <div className="display text-[0.55rem] truncate">Quarto de {user.habbo_name}</div>
-                    <div className="text-sm opacity-60 truncate">"{user.motto}"</div>
+                    <div className="display text-[0.55rem] truncate">{room.name}</div>
+                    <div className="text-sm opacity-60 truncate">{room.motto}</div>
                   </div>
-                  {currentRoomId === user.id && (
-                    <span className="tag-pixel !text-[0.4rem]">VOCÊ ESTÁ AQUI</span>
+                  {currentRoomId === room.id && (
+                    <span className="tag-pixel !text-[0.4rem]">AQUI</span>
                   )}
                 </Link>
               ))}
             </div>
+          ) : (
+            <>
+              <h3 className="display text-[0.55rem] mb-2">JOGADORES NO HOTEL</h3>
+              {loading ? (
+                <div className="text-center py-4 opacity-70 italic">Buscando...</div>
+              ) : onlineUsers.length === 0 ? (
+                <div className="text-center py-4 opacity-70 italic">Ninguém online agora.</div>
+              ) : (
+                <div className="grid gap-2">
+                  {onlineUsers.map((user) => (
+                    <Link
+                      key={user.id}
+                      to="/room"
+                      search={{ owner: user.id }}
+                      onClick={onClose}
+                      className={`card-pixel p-3 flex items-center gap-3 hover:bg-primary/5 transition-colors ${currentRoomId === user.id ? 'border-primary' : ''}`}
+                    >
+                      <div className="scale-75 -ml-2 -mr-2 shrink-0">
+                        <AvatarSprite figure={user.figure} size={40} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="display text-[0.55rem] truncate">Quarto de {user.habbo_name}</div>
+                        <div className="text-sm opacity-60 truncate">"{user.motto}"</div>
+                      </div>
+                      {currentRoomId === user.id && (
+                        <span className="tag-pixel !text-[0.4rem]">AQUI</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
         

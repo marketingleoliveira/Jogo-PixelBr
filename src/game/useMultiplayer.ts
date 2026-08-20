@@ -89,7 +89,13 @@ export function useMultiplayer(
         // Optional: toast or log "user joined"
       })
       .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-        // Optional: toast or log "user left"
+        setPlayers((prev) => {
+          const next = { ...prev };
+          leftPresences.forEach(p => {
+            delete next[(p as any).id];
+          });
+          return next;
+        });
       })
       .on('broadcast', { event: 'chat' }, ({ payload }) => {
         onChatReceived(payload as ChatMessage);
