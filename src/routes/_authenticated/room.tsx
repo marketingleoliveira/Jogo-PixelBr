@@ -33,6 +33,7 @@ function RoomPage() {
   const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const saveTimer = useRef<number | null>(null);
+  const [unlockTrigger, setUnlockTrigger] = useState(0);
 
   const activeRoomId = owner || profile?.id || 'lobby';
 
@@ -121,6 +122,9 @@ function RoomPage() {
           <button onClick={() => setIsNavigatorOpen(true)} className="btn-pixel" data-variant="secondary">
             Navegador
           </button>
+          <button onClick={() => setUnlockTrigger(t => t + 1)} className="btn-pixel" data-variant="secondary" title="Destravar posição">
+            Destravar
+          </button>
           <button onClick={() => navigate({ to: "/create-avatar" })} className="btn-pixel" data-variant="ghost">
             Meu Perfil
           </button>
@@ -140,6 +144,7 @@ function RoomPage() {
           onStateChange={handleStateChange}
           onChatSent={(t) => sendBroadcastChat(t)}
           externalBubbles={externalBubbles}
+          unlockTrigger={unlockTrigger}
         />
         
         {isNavigatorOpen && (
