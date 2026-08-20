@@ -178,6 +178,7 @@ function RoomPage() {
             onClose={() => setIsShopOpen(false)}
             onPurchase={() => fetchProfile().then(p => setProfile(prev => prev ? { ...prev, coins: (p as any).coins } : null))}
           />
+        )}
 
         {showTutorial && (
           <Tutorial onComplete={finishTutorial} />
