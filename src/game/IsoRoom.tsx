@@ -38,6 +38,7 @@ export function IsoRoom({
   isEditMode = false,
   onFurnitureMove,
   onFurnitureRotate,
+  onEmote,
 }: {
   width?: number;
   height?: number;
@@ -59,7 +60,6 @@ export function IsoRoom({
   isEditMode?: boolean;
   onFurnitureMove?: (id: string, x: number, y: number) => void;
   onFurnitureRotate?: (id: string, dir: number) => void;
-  onEmote?: (emote: string | null) => void;
 }) {
   const [pos, setPos] = useState<Point>({ x: startX, y: startY });
   const [direction, setDirection] = useState<0|1|2|3|4|5|6|7>(0);
