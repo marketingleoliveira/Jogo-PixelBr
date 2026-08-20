@@ -55,6 +55,8 @@ export function IsoRoom({
   isDebug?: boolean;
   isEditMode?: boolean;
   onFurnitureMove?: (id: string, x: number, y: number) => void;
+  onFurnitureRotate?: (id: string, dir: number) => void;
+  onFurnitureRotate?: (id: string, dir: number) => void;
 }) {
   const [pos, setPos] = useState<Point>({ x: startX, y: startY });
   const [direction, setDirection] = useState<0|1|2|3|4|5|6|7>(0);
@@ -299,20 +301,25 @@ export function IsoRoom({
             .map((f) => (
               <div
                 key={f.id}
-                className="iso-furniture"
+                className={`iso-furniture ${isEditMode ? 'cursor-move hover:ring-2 ring-white/50' : ''}`}
                 onClick={(e) => handleFurniClick(e, f)}
+                onContextMenu={(e) => {
+                  if (isEditMode) {
+                    e.preventDefault();
+                    onFurnitureRotate?.(f.id, (f.direction + 2) % 8);
+                  }
+                }}
                 style={{
                   ...tileStyle(f.x, f.y),
                   zIndex: f.x + f.y + (f.type === 'rug' ? 0 : 5),
                   pointerEvents: "auto",
-                  cursor: isEditMode ? "move" : "pointer"
                 }}
               >
                 <div className="flex items-center justify-center w-full h-full text-4xl select-none">
-                  {f.type === 'chair' && '🪑'}
+                  {f.type === 'chair' && (f.direction === 0 ? '🪑' : '🛋️')}
                   {f.type === 'table' && '🧱'}
                   {f.type === 'plant' && '🌵'}
-                  {f.type === 'sofa' && '🛋️'}
+                  {f.type === 'sofa' && (f.direction === 0 ? '🛋️' : '🛏️')}
                   {f.type === 'rug' && '🧶'}
                 </div>
               </div>

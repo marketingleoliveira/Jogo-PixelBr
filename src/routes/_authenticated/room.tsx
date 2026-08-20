@@ -11,7 +11,7 @@ import { Tutorial } from "@/game/Tutorial";
 import { Shop } from "@/game/Shop";
 import { AvatarEditor } from "@/game/AvatarEditor";
 import { rewardTimeCoins } from "@/lib/shop.functions";
-import { getRoomFurniture, pickupFurniture, placeFurniture } from "@/lib/furniture.functions";
+import { getRoomFurniture, pickupFurniture, placeFurniture, rotateFurniture, moveFurniture } from "@/lib/furniture.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 

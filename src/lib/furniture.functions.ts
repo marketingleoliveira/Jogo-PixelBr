@@ -91,3 +91,38 @@ export const pickupFurniture = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+export const rotateFurniture = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ 
+    roomFurnitureId: z.string(),
+    direction: z.number()
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("room_furniture" as any)
+      .update({ direction: data.direction })
+      .eq("id", data.roomFurnitureId)
+      .eq("profile_id", context.userId);
+
+    if (error) throw new Error("Erro ao rotacionar móvel");
+    return { ok: true };
+  });
+
+export const moveFurniture = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ 
+    roomFurnitureId: z.string(),
+    x: z.number(),
+    y: z.number()
+  }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("room_furniture" as any)
+      .update({ x: data.x, y: data.y })
+      .eq("id", data.roomFurnitureId)
+      .eq("profile_id", context.userId);
+
+    if (error) throw new Error("Erro ao mover móvel");
+    return { ok: true };
+  });
