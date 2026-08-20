@@ -6,7 +6,7 @@ const TILE_W = 48;
 const TILE_H = 48;
 const WALL_H = 120;
 
-export type ChatBubble = { id: number; text: string; ts: number };
+export type ChatBubble = { id: string | number; text: string; ts: number; habboName?: string };
 
 export function IsoRoom({
   width = 10,
@@ -17,6 +17,10 @@ export function IsoRoom({
   startX = 5,
   startY = 5,
   onPositionChange,
+  others = {},
+  onStateChange,
+  onChatSent,
+  externalBubbles = [],
 }: {
   width?: number;
   height?: number;
@@ -26,6 +30,10 @@ export function IsoRoom({
   startX?: number;
   startY?: number;
   onPositionChange?: (x: number, y: number) => void;
+  others?: Record<string, any>;
+  onStateChange?: (state: { x: number; y: number; direction: number; walking: boolean }) => void;
+  onChatSent?: (text: string) => void;
+  externalBubbles?: ChatBubble[];
 }) {
   const [pos, setPos] = useState<Point>({ x: startX, y: startY });
   const [direction, setDirection] = useState<0|1|2|3|4|5|6|7>(0);
@@ -46,13 +54,15 @@ export function IsoRoom({
         return;
       }
       setPos((prev) => {
-        setDirection(directionFromDelta(next.x - prev.x, next.y - prev.y));
+        const newDir = directionFromDelta(next.x - prev.x, next.y - prev.y);
+        setDirection(newDir);
         onPositionChange?.(next.x, next.y);
+        onStateChange?.({ x: next.x, y: next.y, direction: newDir, walking: true });
         return next;
       });
     }, 220);
     return () => clearInterval(timer);
-  }, [walking, onPositionChange]);
+  }, [walking, onPositionChange, onStateChange]);
 
   // Clean expired bubbles
   useEffect(() => {
@@ -68,6 +78,7 @@ export function IsoRoom({
     if (!path.length) return;
     pathRef.current = path;
     setWalking(true);
+    onStateChange?.({ x: pos.x, y: pos.y, direction, walking: true });
   };
 
   const sendChat = (e: React.FormEvent) => {
@@ -75,6 +86,7 @@ export function IsoRoom({
     const text = input.trim();
     if (!text) return;
     setBubbles((b) => [...b, { id: ++bubbleId.current, text: text.slice(0, 120), ts: Date.now() }]);
+    onChatSent?.(text.slice(0, 120));
     setInput("");
   };
 
@@ -175,7 +187,59 @@ export function IsoRoom({
             }),
           )}
 
-          {/* avatar */}
+          {/* other players */}
+          {Object.values(others).map((other: any) => {
+            const oLeft = other.x * TILE_W + TILE_W / 2;
+            const oTop = other.y * TILE_H + TILE_H / 2;
+            const otherBubbles = externalBubbles
+              .filter((b) => b.habboName === other.habbo_name)
+              .slice(-2);
+
+            return (
+              <div key={other.id}>
+                <div className="iso-shadow" style={{ left: oLeft, top: oTop }} />
+                <div
+                  className="iso-avatar"
+                  data-walking={other.walking}
+                  style={{
+                    left: oLeft,
+                    top: oTop,
+                    marginLeft: -20,
+                    marginTop: -60,
+                    transition: "all 0.22s linear",
+                  }}
+                >
+                  <div style={{ position: "relative" }}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: -8,
+                        transform: "translateX(-50%)",
+                        display: "flex",
+                        flexDirection: "column-reverse",
+                        gap: 4,
+                        alignItems: "center",
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {otherBubbles.map((b) => (
+                        <div key={b.id} className="chat-bubble bubble-anim">
+                          <b>{b.habboName}:</b> {b.text}
+                        </div>
+                      ))}
+                    </div>
+                    <AvatarSprite figure={other.figure} direction={other.direction} size={40} />
+                    <div className="habbo-name-plate">
+                      {other.habbo_name}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* my avatar */}
           <div className="iso-shadow" style={{ left: avatarLeft, top: avatarTop }} />
           <div
             className="iso-avatar"
@@ -209,21 +273,7 @@ export function IsoRoom({
                 ))}
               </div>
               <AvatarSprite figure={figure} direction={direction} size={40} />
-              <div
-                style={{
-                  position: "absolute",
-                  left: "50%",
-                  top: "100%",
-                  transform: "translateX(-50%)",
-                  marginTop: 2,
-                  background: "var(--color-border)",
-                  color: "white",
-                  padding: "2px 6px",
-                  fontFamily: "var(--font-sans)",
-                  fontSize: 14,
-                  whiteSpace: "nowrap",
-                }}
-              >
+              <div className="habbo-name-plate">
                 {habboName}
               </div>
             </div>
