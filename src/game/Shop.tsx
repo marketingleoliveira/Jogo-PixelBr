@@ -3,10 +3,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { getFurnitureCatalog, buyFurniture, getMyInventory } from "@/lib/shop.functions";
 import { toast } from "sonner";
 
-export function Shop({ onClose, coins, onPurchase }: { onClose: () => void; coins: number; onPurchase: () => void }) {
+export function Shop({ onClose, coins, onPurchase, roomId }: { onClose: () => void; coins: number; onPurchase: () => void; roomId: string }) {
   const fetchCatalog = useServerFn(getFurnitureCatalog);
   const fetchInventory = useServerFn(getMyInventory);
   const doBuy = useServerFn(buyFurniture);
+  const doPlace = useServerFn(placeFurniture);
+
   
   const [catalog, setCatalog] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
@@ -37,6 +39,28 @@ export function Shop({ onClose, coins, onPurchase }: { onClose: () => void; coin
       toast.error(e.message || "Erro ao comprar");
     }
   };
+
+  const handlePlace = async (inventoryId: string) => {
+    try {
+      // Place at a default location (e.g. 5,5) - normally we'd pick a location
+      await doPlace({ 
+        data: { 
+          inventoryId, 
+          roomId, 
+          x: 5, 
+          y: 5,
+          direction: 0 
+        } 
+      });
+      toast.success("Móvel colocado no quarto!");
+      onPurchase(); // This will trigger refresh in room
+      const i = await fetchInventory();
+      setInventory(i);
+    } catch (e: any) {
+      toast.error(e.message || "Erro ao colocar móvel");
+    }
+  };
+
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -107,7 +131,15 @@ export function Shop({ onClose, coins, onPurchase }: { onClose: () => void; coin
                     {item.furniture?.sprite_type === 'rug' && '🧶'}
                   </div>
                   <div className="text-[8px] truncate w-full text-center">{item.furniture?.name}</div>
+                  <button 
+                    onClick={() => handlePlace(item.id)}
+                    className="btn-pixel w-full text-[8px] py-0.5 mt-1"
+                    data-variant="primary"
+                  >
+                    Colocar
+                  </button>
                 </div>
+
               ))}
               {inventory.length === 0 && (
                 <div className="col-span-3 text-center py-4 opacity-50 text-xs">Seu inventário está vazio.</div>
