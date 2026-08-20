@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { IsoRoom } from "@/game/IsoRoom";
+import { IsoRoom, type ChatBubble } from "@/game/IsoRoom";
 import { DEFAULT_FIGURE, type Figure } from "@/game/avatar";
 import { getMyProfile, saveLastPosition } from "@/lib/profile.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { useMultiplayer, type ChatMessage } from "@/game/useMultiplayer";
 
 export const Route = createFileRoute("/_authenticated/room")({
   component: RoomPage,
@@ -15,9 +16,31 @@ function RoomPage() {
   const fetchProfile = useServerFn(getMyProfile);
   const savePos = useServerFn(saveLastPosition);
   const [profile, setProfile] = useState<null | {
-    habbo_name: string | null; motto: string; figure: Figure; last_x: number; last_y: number; onboarded: boolean;
+    id: string; habbo_name: string; motto: string; figure: Figure; last_x: number; last_y: number; onboarded: boolean;
   }>(null);
+  const [externalBubbles, setExternalBubbles] = useState<ChatBubble[]>([]);
   const saveTimer = useRef<number | null>(null);
+
+  const onChatReceived = useCallback((msg: ChatMessage) => {
+    setExternalBubbles((prev) => [
+      ...prev,
+      { id: `${msg.playerId}-${msg.ts}`, text: msg.text, ts: msg.ts, habboName: msg.habboName }
+    ]);
+  }, []);
+
+  const { players, updateMyState, sendBroadcastChat } = useMultiplayer(
+    profile ? { id: profile.id, habbo_name: profile.habbo_name, figure: profile.figure, motto: profile.motto } : null,
+    { x: profile?.last_x ?? 5, y: profile?.last_y ?? 5 },
+    onChatReceived
+  );
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const now = Date.now();
+      setExternalBubbles((b) => b.filter((x) => now - x.ts < 6000));
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     fetchProfile().then((p) => {
@@ -27,6 +50,7 @@ function RoomPage() {
         return;
       }
       setProfile({
+        id: p.id,
         habbo_name: p.habbo_name,
         motto: p.motto ?? "",
         figure: (p.figure as Figure) ?? DEFAULT_FIGURE,
@@ -67,11 +91,15 @@ function RoomPage() {
       <div className="flex-1">
         <IsoRoom
           figure={profile.figure}
-          habboName={profile.habbo_name ?? "Visitante"}
+          habboName={profile.habbo_name}
           motto={profile.motto}
           startX={profile.last_x}
           startY={profile.last_y}
           onPositionChange={onPositionChange}
+          others={players}
+          onStateChange={(s) => updateMyState(s)}
+          onChatSent={(t) => sendBroadcastChat(t)}
+          externalBubbles={externalBubbles}
         />
       </div>
     </div>

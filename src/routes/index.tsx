@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { AvatarSprite, DEFAULT_FIGURE, type Figure } from "@/game/avatar";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -100,6 +102,23 @@ function RoomScene() {
 }
 
 function Landing() {
+  const [onlineCount, setOnlineCount] = useState(0);
+
+  useEffect(() => {
+    // Basic presence tracking for the landing page
+    const channel = supabase.channel('online-count');
+    
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        setOnlineCount(Object.keys(state).length);
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* clouds */}
@@ -172,7 +191,7 @@ function Landing() {
                 </div>
               ))}
               <span className="text-lg ml-2">
-                <b>0</b> habitantes online agora
+                <b>{onlineCount}</b> habitantes online agora
               </span>
             </div>
           </div>
