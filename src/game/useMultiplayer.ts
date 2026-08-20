@@ -30,15 +30,21 @@ export function useMultiplayer(
   const [players, setPlayers] = useState<Record<string, PlayerState>>({});
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastSentStateRef = useRef<string>("");
+  const myProfileRef = useRef(myProfile);
+
+  useEffect(() => {
+    myProfileRef.current = myProfile;
+  }, [myProfile]);
 
   const updateMyState = useCallback((state: Partial<PlayerState>) => {
-    if (!channelRef.current || !myProfile) return;
+    const currentProfile = myProfileRef.current;
+    if (!channelRef.current || !currentProfile) return;
     
     const newState = {
-      id: myProfile.id,
-      habbo_name: myProfile.habbo_name,
-      figure: myProfile.figure,
-      motto: myProfile.motto,
+      id: currentProfile.id,
+      habbo_name: currentProfile.habbo_name,
+      figure: currentProfile.figure,
+      motto: currentProfile.motto,
       x: typeof state.x === 'number' ? state.x : initialPos.x,
       y: typeof state.y === 'number' ? state.y : initialPos.y,
       direction: typeof state.direction === 'number' ? state.direction : 0,
@@ -112,6 +118,7 @@ export function useMultiplayer(
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
+          // Send initial position after subscription
           await channel.track({
             id: myProfile.id,
             habbo_name: myProfile.habbo_name,
@@ -123,6 +130,8 @@ export function useMultiplayer(
             walking: false,
             lastUpdate: Date.now(),
           });
+          // Also set local ref to prevent immediate resend if nothing changed
+          lastSentStateRef.current = `${initialPos.x},${initialPos.y},0,false`;
         }
       });
 

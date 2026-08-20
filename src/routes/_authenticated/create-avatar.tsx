@@ -43,17 +43,20 @@ function CreateAvatar() {
   const [gender, setGender] = useState<"M" | "F">("M");
   const [motto, setMotto] = useState("Novato no hotel!");
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchProfile().then((p) => {
-      if (p?.onboarded) navigate({ to: "/room" });
-      if (p?.figure) setFigure(p.figure as Figure);
-      if (p?.habbo_name) setHabboName(p.habbo_name);
-      if (p?.motto) setMotto(p.motto);
-      if (p?.gender === "M" || p?.gender === "F") setGender(p.gender);
-    });
-  }, [fetchProfile, navigate]);
+    setFetching(true);
+    fetchProfile()
+      .then((p) => {
+        if (p?.figure) setFigure(p.figure as Figure);
+        if (p?.habbo_name) setHabboName(p.habbo_name);
+        if (p?.motto) setMotto(p.motto);
+        if (p?.gender === "M" || p?.gender === "F") setGender(p.gender);
+      })
+      .finally(() => setFetching(false));
+  }, [fetchProfile]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,8 +143,8 @@ function CreateAvatar() {
           </div>
 
           {error && <div className="text-destructive text-sm">{error}</div>}
-          <button className="btn-pixel w-full" disabled={loading}>
-            {loading ? "Entrando no hotel..." : "Entrar no meu quarto"}
+          <button className="btn-pixel w-full" disabled={loading || fetching}>
+            {loading ? "Entrando no hotel..." : fetching ? "Carregando..." : "Salvar e Entrar"}
           </button>
         </form>
       </div>
