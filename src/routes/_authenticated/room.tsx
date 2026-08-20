@@ -253,6 +253,7 @@ function RoomPage() {
           furniture={roomFurniture}
           onFurnitureClick={handleFurnitureClick}
           onFurnitureRotate={handleFurnitureRotate}
+          onEmote={(e) => updateMyState({ emote: e } as any)}
           isDebug={isDebugMode}
           isEditMode={isEditMode}
         />
