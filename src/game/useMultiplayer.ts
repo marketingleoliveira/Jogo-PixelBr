@@ -123,8 +123,13 @@ export function useMultiplayer(
       .on('broadcast', { event: 'chat' }, ({ payload }) => {
         onChatReceived(payload as ChatMessage);
       })
-      .subscribe(async (status) => {
+      .subscribe(async (status, err) => {
         setStatus(status);
+        if (err) {
+          console.error("Realtime subscription error:", err);
+          return;
+        }
+
         if (status === 'SUBSCRIBED') {
           // Send initial position after subscription
           await channel.track({

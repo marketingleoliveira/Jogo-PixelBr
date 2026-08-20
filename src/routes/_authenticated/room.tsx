@@ -211,10 +211,18 @@ function RoomPage() {
           )}
         </div>
         <div className="flex gap-2 items-center">
-          {status !== 'SUBSCRIBED' && (
+          {status !== 'SUBSCRIBED' && status !== 'CHANNEL_ERROR' && (
             <span className="text-[10px] text-yellow-600 animate-pulse font-mono mr-2">
               RECONECTANDO...
             </span>
+          )}
+          {status === 'CHANNEL_ERROR' && (
+            <button 
+              onClick={() => window.location.reload()} 
+              className="text-[10px] text-red-600 font-mono mr-2 hover:underline"
+            >
+              ERRO DE CONEXÃO - CLIQUE PARA RECARREGAR
+            </button>
           )}
           <button onClick={() => setIsEditMode(!isEditMode)} className="btn-pixel" data-variant={isEditMode ? "primary" : "secondary"}>
             {isEditMode ? "Sair Edição" : "Editar Quarto"}
