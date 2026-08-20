@@ -53,6 +53,8 @@ export function AvatarSprite({
       {/* legs */}
       <rect x="11" y="30" width="4" height="12" fill={figure.pants_color} />
       <rect x="17" y="30" width="4" height="12" fill={figure.pants_color} />
+      <rect x="19" y="30" width="2" height="12" fill="#000" opacity={0.22} />
+      <rect x="13" y="30" width="2" height="12" fill="#000" opacity={0.22} />
       <rect x="11" y="42" width="4" height="3" fill="#1a1a1a" />
       <rect x="17" y="42" width="4" height="3" fill="#1a1a1a" />
 
@@ -62,6 +64,9 @@ export function AvatarSprite({
       ) : (
         <rect x="9" y="18" width="14" height="14" fill={figure.shirt_color} />
       )}
+      {/* body shading: light from top-left, shade on right */}
+      <rect x="19" y="18" width="4" height="14" fill="#000" opacity={0.16} />
+      <rect x="9" y="18" width="3" height="14" fill="#fff" opacity={0.16} />
       {figure.shirt === "hoodie" && (
         <rect x="9" y="17" width="14" height="3" fill={figure.shirt_color} opacity={0.8} />
       )}
@@ -69,14 +74,22 @@ export function AvatarSprite({
       {/* arms */}
       <rect x="6" y="18" width="4" height="12" fill={figure.shirt_color} />
       <rect x="22" y="18" width="4" height="12" fill={figure.shirt_color} />
+      <rect x="24" y="18" width="2" height="12" fill="#000" opacity={0.2} />
+      <rect x="6" y="18" width="1" height="12" fill="#fff" opacity={0.18} />
       <rect x="6" y="28" width="4" height="3" fill={figure.skin} />
       <rect x="22" y="28" width="4" height="3" fill={figure.skin} />
 
       {/* neck */}
       <rect x="14" y="16" width="4" height="3" fill={figure.skin} />
+      <rect x="9" y="16" width="14" height="2" fill="#000" opacity={0.18} />
 
       {/* head */}
       <rect x="9" y="4" width="14" height="14" fill={figure.skin} />
+      <rect x="20" y="4" width="3" height="14" fill="#000" opacity={0.14} />
+      <rect x="9" y="4" width="2" height="14" fill="#fff" opacity={0.14} />
+      {/* cheeks */}
+      <rect x="10" y="12" width="2" height="2" fill="#e08a7a" opacity={0.5} />
+      <rect x="20" y="12" width="2" height="2" fill="#e08a7a" opacity={0.5} />
 
       {/* eyes — front-facing only for south/east/west; back = no eyes */}
       {direction !== 4 && (
