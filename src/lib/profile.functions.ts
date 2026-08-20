@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const figureSchema = z.object({
+export const figureSchema = z.object({
   skin: z.string(),
   hair: z.enum(["short", "long", "cap", "bald"]),
   hair_color: z.string(),
@@ -10,6 +10,8 @@ const figureSchema = z.object({
   shirt_color: z.string(),
   pants_color: z.string(),
 });
+
+
 
 export const getMyProfile = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])

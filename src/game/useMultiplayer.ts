@@ -11,6 +11,7 @@ export type PlayerState = {
   y: number;
   direction: number;
   walking: boolean;
+  sitting: boolean;
   lastUpdate: number;
 };
 
@@ -28,8 +29,10 @@ export function useMultiplayer(
   roomId: string = 'lobby'
 ) {
   const [players, setPlayers] = useState<Record<string, PlayerState>>({});
+  const [status, setStatus] = useState<'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR' | 'CONNECTING'>('CONNECTING');
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastSentStateRef = useRef<string>("");
+
   const myProfileRef = useRef(myProfile);
 
   useEffect(() => {
@@ -49,10 +52,12 @@ export function useMultiplayer(
       y: typeof state.y === 'number' ? state.y : initialPos.y,
       direction: typeof state.direction === 'number' ? state.direction : 0,
       walking: typeof state.walking === 'boolean' ? state.walking : false,
+      sitting: typeof (state as any).sitting === 'boolean' ? (state as any).sitting : false,
     };
 
     // Compression: Only send if essential fields changed
-    const stateKey = `${newState.x},${newState.y},${newState.direction},${newState.walking}`;
+    const stateKey = `${newState.x},${newState.y},${newState.direction},${newState.walking},${newState.sitting}`;
+
     if (stateKey === lastSentStateRef.current) return;
     lastSentStateRef.current = stateKey;
 
@@ -117,6 +122,7 @@ export function useMultiplayer(
         onChatReceived(payload as ChatMessage);
       })
       .subscribe(async (status) => {
+        setStatus(status);
         if (status === 'SUBSCRIBED') {
           // Send initial position after subscription
           await channel.track({
@@ -128,10 +134,11 @@ export function useMultiplayer(
             y: initialPos.y,
             direction: 0,
             walking: false,
+            sitting: false,
             lastUpdate: Date.now(),
           });
           // Also set local ref to prevent immediate resend if nothing changed
-          lastSentStateRef.current = `${initialPos.x},${initialPos.y},0,false`;
+          lastSentStateRef.current = `${initialPos.x},${initialPos.y},0,false,false`;
         }
       });
 
@@ -144,6 +151,7 @@ export function useMultiplayer(
 
   return {
     players,
+    status,
     updateMyState,
     sendBroadcastChat,
   };
