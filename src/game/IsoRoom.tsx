@@ -188,56 +188,59 @@ export function IsoRoom({
           )}
 
           {/* other players */}
-          {Object.values(others).map((other: any) => {
-            const oLeft = other.x * TILE_W + TILE_W / 2;
-            const oTop = other.y * TILE_H + TILE_H / 2;
-            const otherBubbles = externalBubbles
-              .filter((b) => b.habboName === other.habbo_name)
-              .slice(-2);
+          {[...Object.values(others)]
+            .sort((a, b) => (a.x + a.y) - (b.x + b.y))
+            .map((other: any) => {
+              const oLeft = other.x * TILE_W + TILE_W / 2;
+              const oTop = other.y * TILE_H + TILE_H / 2;
+              const otherBubbles = externalBubbles
+                .filter((b) => b.habboName === other.habbo_name)
+                .slice(-2);
 
-            return (
-              <div key={other.id}>
-                <div className="iso-shadow" style={{ left: oLeft, top: oTop }} />
-                <div
-                  className="iso-avatar"
-                  data-walking={other.walking}
-                  style={{
-                    left: oLeft,
-                    top: oTop,
-                    marginLeft: -20,
-                    marginTop: -60,
-                    transition: "all 0.22s linear",
-                  }}
-                >
-                  <div style={{ position: "relative" }}>
-                    <div
-                      style={{
-                        position: "absolute",
-                        left: "50%",
-                        top: -8,
-                        transform: "translateX(-50%)",
-                        display: "flex",
-                        flexDirection: "column-reverse",
-                        gap: 4,
-                        alignItems: "center",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      {otherBubbles.map((b) => (
-                        <div key={b.id} className="chat-bubble bubble-anim">
-                          <b>{b.habboName}:</b> {b.text}
-                        </div>
-                      ))}
-                    </div>
-                    <AvatarSprite figure={other.figure} direction={other.direction} size={40} />
-                    <div className="habbo-name-plate">
-                      {other.habbo_name}
+              return (
+                <div key={other.id}>
+                  <div className="iso-shadow" style={{ left: oLeft, top: oTop }} />
+                  <div
+                    className="iso-avatar"
+                    data-walking={other.walking}
+                    style={{
+                      left: oLeft,
+                      top: oTop,
+                      marginLeft: -20,
+                      marginTop: -60,
+                      transition: "all 0.22s linear",
+                      zIndex: other.x + other.y + 10,
+                    }}
+                  >
+                    <div style={{ position: "relative" }}>
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: "50%",
+                          top: -8,
+                          transform: "translateX(-50%)",
+                          display: "flex",
+                          flexDirection: "column-reverse",
+                          gap: 4,
+                          alignItems: "center",
+                          pointerEvents: "none",
+                        }}
+                      >
+                        {otherBubbles.map((b) => (
+                          <div key={b.id} className="chat-bubble bubble-anim">
+                            <b>{b.habboName}:</b> {b.text}
+                          </div>
+                        ))}
+                      </div>
+                      <AvatarSprite figure={other.figure} direction={other.direction} size={40} />
+                      <div className="habbo-name-plate">
+                        {other.habbo_name}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
           {/* my avatar */}
           <div className="iso-shadow" style={{ left: avatarLeft, top: avatarTop }} />
@@ -249,6 +252,7 @@ export function IsoRoom({
               top: avatarTop,
               marginLeft: -20,
               marginTop: -60,
+              zIndex: pos.x + pos.y + 11,
             }}
           >
             <div style={{ position: "relative" }}>
