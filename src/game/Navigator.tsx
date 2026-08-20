@@ -4,8 +4,15 @@ import { AvatarSprite, type Figure } from "./avatar";
 import { Link } from "@tanstack/react-router";
 
 export function Navigator({ currentRoomId, onClose }: { currentRoomId: string; onClose: () => void }) {
+  const [activeTab, setActiveTab] = useState<'public' | 'users'>('public');
   const [onlineUsers, setOnlineUsers] = useState<{ id: string; habbo_name: string; figure: Figure; motto: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  const PUBLIC_ROOMS = [
+    { id: 'public-lobby', name: 'Lobby Principal', motto: 'O coração do hotel', color: 'var(--color-tile)' },
+    { id: 'public-cafe', name: 'Café do Hotel', motto: 'Um lugar para relaxar', color: 'var(--color-accent)' },
+    { id: 'public-pool', name: 'Piscina', motto: 'Mergulhe na diversão', color: 'var(--color-sky-a)' },
+  ];
 
   useEffect(() => {
     const fetchOnline = async () => {
