@@ -4,6 +4,7 @@ import { findPath, type Point } from "./pathfind";
 
 const TILE_W = 48;
 const TILE_H = 48;
+const WALL_H = 120;
 
 export type ChatBubble = { id: number; text: string; ts: number };
 
