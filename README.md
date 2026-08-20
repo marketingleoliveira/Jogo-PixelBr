@@ -1,26 +1,41 @@
-# My Virtual World
+# 👾 Jogo-PixelBr (My Virtual World)
 
-crie um jogo como habbo.com.br
+> Um mundo virtual interativo no estilo Habbo Hotel, focado em multiplayer, movimentação de avatares, salas customizáveis e interação em tempo real.
 
-This project was built with [Lovable](https://lovable.dev).
+🌐 **Demo ao Vivo:** [https://pixelbr.lovable.app](https://pixelbr.lovable.app)
 
-**Live app**: https://pixelbr.lovable.app
+---
 
-## Build with Lovable
+## 📌 Sobre o Projeto
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/47b555c6-6135-4fa1-a751-c29bd36be2b1).
+O **Jogo-PixelBr** é uma aplicação web inspirada em jogos clássicos de pixel art e comunidades virtuais como o *Habbo Hotel*. O objetivo principal é proporcionar uma experiência imersiva onde usuários podem navegar por ambientes 2D/isométricos, interagir com elementos do mapa e se comunicar em tempo real.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+O projeto utiliza uma arquitetura moderna com **React + TypeScript + Vite**, suporte a **Supabase** para gerenciamento de dados/autenticação e scripts customizados em **Python** para depuração de físicas e movimentação.
 
-## Development
+---
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## 🛠️ Tech Stack & Arquitetura
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
-```
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, TanStack Router / Query
+- **Backend & Database:** Supabase (Auth, Realtime, Database)
+- **Gerenciador de Pacotes & Runtime:** Bun / Node.js
+- **Tooling & Linter:** ESLint, Prettier, Lovable.app
+- **Depuração & Utility:** Python (`debug_movement.py`)
+
+---
+
+## 📂 Estrutura do Repositório
+
+```text
+├── .lovable/              # Configurações do ambiente Lovable
+├── public/                # Assets estáticos (sprites, áudios, imagens)
+├── src/                   # Código fonte da aplicação
+│   ├── components/        # Componentes React reutilizáveis (UI, modais, etc.)
+│   ├── hooks/             # Custom hooks para lógica de jogo e estado
+│   ├── pages/             # Páginas da aplicação
+│   └── services/          # Conexão com Supabase e APIs
+├── supabase/              # Configurações, migrations e funções Supabase
+├── debug_movement.py      # Script Python para testes de colisão e movimentação
+├── AGENTS.md              # Instruções e diretrizes para agentes de IA
+├── package.json
+└── vite.config.ts
