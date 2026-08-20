@@ -46,7 +46,7 @@ export function IsoRoom({
   startY?: number;
   onPositionChange?: (x: number, y: number) => void;
   others?: Record<string, any>;
-  onStateChange?: (state: { x: number; y: number; direction: number; walking: boolean }) => void;
+  onStateChange?: (state: { x: number; y: number; direction: number; walking: boolean; sitting: boolean }) => void;
   onChatSent?: (text: string) => void;
   externalBubbles?: ChatBubble[];
   unlockTrigger?: number;
@@ -127,7 +127,7 @@ export function IsoRoom({
       setWalking(false);
       pathRef.current = [];
       // Force position to stay where it is but stop movement
-      onStateChange?.({ x: pos.x, y: pos.y, direction, walking: false });
+      onStateChange?.({ x: pos.x, y: pos.y, direction, walking: false, sitting: isSitting });
     }
   }, [unlockTrigger]);
 
