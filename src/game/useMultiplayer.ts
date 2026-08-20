@@ -33,18 +33,20 @@ export function useMultiplayer(
   const updateMyState = useCallback((state: Partial<PlayerState>) => {
     if (!channelRef.current || !myProfile) return;
     
+    // Use state values if provided, otherwise fall back to current known values
+    // This allows partial updates without resetting the whole state
     channelRef.current.track({
       id: myProfile.id,
       habbo_name: myProfile.habbo_name,
       figure: myProfile.figure,
       motto: myProfile.motto,
-      x: state.x ?? initialPos.x,
-      y: state.y ?? initialPos.y,
-      direction: state.direction ?? 0,
-      walking: state.walking ?? false,
+      x: typeof state.x === 'number' ? state.x : initialPos.x,
+      y: typeof state.y === 'number' ? state.y : initialPos.y,
+      direction: typeof state.direction === 'number' ? state.direction : 0,
+      walking: typeof state.walking === 'boolean' ? state.walking : false,
       lastUpdate: Date.now(),
     });
-  }, [myProfile, initialPos]);
+  }, [myProfile, initialPos.x, initialPos.y]);
 
   const sendBroadcastChat = useCallback((text: string) => {
     if (!channelRef.current || !myProfile) return;
