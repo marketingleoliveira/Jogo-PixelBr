@@ -123,6 +123,36 @@ export function IsoRoom({
           }}
         >
           {/* tiles */}
+          {/* depth: ground shadow + floor slab + walls */}
+          <div className="iso-floor-shadow" />
+          <div className="iso-slab" />
+          <div
+            className="iso-wall"
+            data-side="north"
+            style={{
+              left: 0,
+              top: 0,
+              width: sceneSize.w,
+              height: WALL_H,
+              transform: "rotateX(-90deg)",
+            }}
+          >
+            <div className="iso-wall-band" />
+          </div>
+          <div
+            className="iso-wall"
+            data-side="west"
+            style={{
+              left: 0,
+              top: 0,
+              width: sceneSize.h,
+              height: WALL_H,
+              transform: "rotateZ(90deg) rotateX(-90deg)",
+            }}
+          >
+            <div className="iso-wall-band" />
+          </div>
+
           {Array.from({ length: height }).map((_, y) =>
             Array.from({ length: width }).map((__, x) => {
               const isHover = hoverTile?.x === x && hoverTile?.y === y;
@@ -145,6 +175,7 @@ export function IsoRoom({
           )}
 
           {/* avatar */}
+          <div className="iso-shadow" style={{ left: avatarLeft, top: avatarTop }} />
           <div
             className="iso-avatar"
             data-walking={walking}
