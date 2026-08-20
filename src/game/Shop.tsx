@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getFurnitureCatalog, buyFurniture, getMyInventory } from "@/lib/shop.functions";
+import { placeFurniture } from "@/lib/furniture.functions";
 import { toast } from "sonner";
 
 export function Shop({ onClose, coins, onPurchase, roomId }: { onClose: () => void; coins: number; onPurchase: () => void; roomId: string }) {
