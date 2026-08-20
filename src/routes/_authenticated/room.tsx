@@ -50,6 +50,10 @@ function RoomPage() {
     activeRoomId
   );
 
+  const handleStateChange = useCallback((s: { x: number; y: number; direction: number; walking: boolean }) => {
+    updateMyState(s);
+  }, [updateMyState]);
+
   useEffect(() => {
     fetchProfile().then((p) => {
       if (!p) return;
@@ -133,7 +137,7 @@ function RoomPage() {
           startY={profile.last_y}
           onPositionChange={onPositionChange}
           others={players}
-          onStateChange={(s) => updateMyState(s)}
+          onStateChange={handleStateChange}
           onChatSent={(t) => sendBroadcastChat(t)}
           externalBubbles={externalBubbles}
         />

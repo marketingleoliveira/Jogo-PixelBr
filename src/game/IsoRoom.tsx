@@ -43,26 +43,38 @@ export function IsoRoom({
   const [input, setInput] = useState("");
   const pathRef = useRef<Point[]>([]);
   const bubbleId = useRef(0);
+  const lastStateSent = useRef<{ x: number; y: number; direction: number; walking: boolean } | null>(null);
 
   // Walk animation loop
   useEffect(() => {
     if (!walking) return;
     const timer = setInterval(() => {
       const next = pathRef.current.shift();
+      
       if (!next) {
         setWalking(false);
+        const finalState = { x: pos.x, y: pos.y, direction, walking: false };
+        onStateChange?.(finalState);
+        lastStateSent.current = finalState;
         return;
       }
+
       setPos((prev) => {
         const newDir = directionFromDelta(next.x - prev.x, next.y - prev.y);
         setDirection(newDir);
         onPositionChange?.(next.x, next.y);
-        onStateChange?.({ x: next.x, y: next.y, direction: newDir, walking: true });
+        
+        const newState = { x: next.x, y: next.y, direction: newDir, walking: true };
+        if (JSON.stringify(lastStateSent.current) !== JSON.stringify(newState)) {
+          onStateChange?.(newState);
+          lastStateSent.current = newState;
+        }
+        
         return next;
       });
     }, 220);
     return () => clearInterval(timer);
-  }, [walking, onPositionChange, onStateChange]);
+  }, [walking, onPositionChange, onStateChange, pos.x, pos.y, direction]);
 
   // Clean expired bubbles
   useEffect(() => {
