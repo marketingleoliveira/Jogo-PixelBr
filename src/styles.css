@@ -160,6 +160,21 @@
   border-top-color: var(--color-border);
 }
 
+.habbo-name-plate {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: 2px;
+  background: var(--color-border);
+  color: white;
+  padding: 2px 6px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  white-space: nowrap;
+  box-shadow: 2px 2px 0 0 rgba(0,0,0,0.2);
+}
+
 /* Isometric room */
 .iso-scene {
   transform-style: preserve-3d;
