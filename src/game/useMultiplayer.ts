@@ -24,7 +24,8 @@ export type ChatMessage = {
 export function useMultiplayer(
   myProfile: { id: string; habbo_name: string; figure: Figure; motto: string } | null,
   initialPos: { x: number; y: number },
-  onChatReceived: (msg: ChatMessage) => void
+  onChatReceived: (msg: ChatMessage) => void,
+  roomId: string = 'lobby'
 ) {
   const [players, setPlayers] = useState<Record<string, PlayerState>>({});
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
@@ -63,7 +64,7 @@ export function useMultiplayer(
   useEffect(() => {
     if (!myProfile) return;
 
-    const channel = supabase.channel('lobby', {
+    const channel = supabase.channel(`room:${roomId}`, {
       config: {
         presence: {
           key: myProfile.id,
@@ -114,7 +115,7 @@ export function useMultiplayer(
     return () => {
       channel.unsubscribe();
     };
-  }, [myProfile, initialPos.x, initialPos.y, onChatReceived]);
+  }, [myProfile, initialPos.x, initialPos.y, onChatReceived, roomId]);
 
   return {
     players,
