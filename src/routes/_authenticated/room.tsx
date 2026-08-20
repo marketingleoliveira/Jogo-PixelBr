@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMultiplayer, type ChatMessage } from "@/game/useMultiplayer";
 import { Navigator } from "@/game/Navigator";
 import { Tutorial } from "@/game/Tutorial";
+import { Shop } from "@/game/Shop";
+import { rewardTimeCoins } from "@/lib/shop.functions";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const roomSearchSchema = z.object({
@@ -26,14 +29,16 @@ function RoomPage() {
   const savePos = useServerFn(saveLastPosition);
   
   const [profile, setProfile] = useState<null | {
-    id: string; habbo_name: string; motto: string; figure: Figure; last_x: number; last_y: number; onboarded: boolean;
+    id: string; habbo_name: string; motto: string; figure: Figure; last_x: number; last_y: number; onboarded: boolean; coins?: number;
   }>(null);
   
   const [externalBubbles, setExternalBubbles] = useState<ChatBubble[]>([]);
   const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const [unlockTrigger, setUnlockTrigger] = useState(0);
+  const rewardFn = useServerFn(rewardTimeCoins);
 
   const activeRoomId = owner || profile?.id || 'lobby';
 
@@ -70,6 +75,7 @@ function RoomPage() {
         last_x: p.last_x ?? 5,
         last_y: p.last_y ?? 5,
         onboarded: p.onboarded,
+        coins: (p as any).coins ?? 0,
       });
 
       // Show tutorial on first visit
@@ -81,12 +87,21 @@ function RoomPage() {
   }, [fetchProfile, navigate]);
 
   useEffect(() => {
-    const t = setInterval(() => {
+    const t = setInterval(async () => {
       const now = Date.now();
       setExternalBubbles((b) => b.filter((x) => now - x.ts < 6000));
-    }, 1000);
+      
+      // Try to reward coins
+      try {
+        const res = await rewardFn();
+        if (res.rewarded) {
+          toast.success("Você ganhou 100 moedas por tempo de jogo!");
+          setProfile(prev => prev ? { ...prev, coins: res.coins } : null);
+        }
+      } catch (e) {}
+    }, 60000); // Check every minute
     return () => clearInterval(t);
-  }, []);
+  }, [rewardFn]);
 
   const onPositionChange = useCallback((x: number, y: number) => {
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
@@ -119,6 +134,9 @@ function RoomPage() {
           )}
         </div>
         <div className="flex gap-2">
+          <button onClick={() => setIsShopOpen(true)} className="btn-pixel" data-variant="secondary">
+            Loja 🪙 {profile.coins ?? 0}
+          </button>
           <button onClick={() => setIsNavigatorOpen(true)} className="btn-pixel" data-variant="secondary">
             Navegador
           </button>
@@ -153,6 +171,13 @@ function RoomPage() {
             onClose={() => setIsNavigatorOpen(false)} 
           />
         )}
+        
+        {isShopOpen && (
+          <Shop 
+            coins={profile.coins ?? 0}
+            onClose={() => setIsShopOpen(false)}
+            onPurchase={() => fetchProfile().then(p => setProfile(prev => prev ? { ...prev, coins: (p as any).coins } : null))}
+          />
 
         {showTutorial && (
           <Tutorial onComplete={finishTutorial} />
