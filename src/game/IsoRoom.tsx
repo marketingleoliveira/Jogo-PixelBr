@@ -3,6 +3,14 @@ import { AvatarSprite, type Figure, directionFromDelta } from "./avatar";
 import { findPath, type Point } from "./pathfind";
 import { getLinePoints } from "./movement.utils";
 
+export type Furniture = {
+  id: string;
+  x: number;
+  y: number;
+  type: 'chair' | 'table' | 'plant' | 'sofa' | 'rug';
+  direction: number;
+};
+
 const TILE_W = 48;
 const TILE_H = 48;
 const WALL_H = 120;
@@ -23,6 +31,11 @@ export function IsoRoom({
   onChatSent,
   externalBubbles = [],
   unlockTrigger,
+  furniture = [],
+  onFurnitureClick,
+  isDebug = false,
+  isEditMode = false,
+  onFurnitureMove,
 }: {
   width?: number;
   height?: number;
@@ -37,16 +50,23 @@ export function IsoRoom({
   onChatSent?: (text: string) => void;
   externalBubbles?: ChatBubble[];
   unlockTrigger?: number;
+  furniture?: Furniture[];
+  onFurnitureClick?: (f: Furniture) => void;
+  isDebug?: boolean;
+  isEditMode?: boolean;
+  onFurnitureMove?: (id: string, x: number, y: number) => void;
 }) {
   const [pos, setPos] = useState<Point>({ x: startX, y: startY });
   const [direction, setDirection] = useState<0|1|2|3|4|5|6|7>(0);
   const [walking, setWalking] = useState(false);
+  const [isSitting, setIsSitting] = useState(false);
   const [hoverTile, setHoverTile] = useState<Point | null>(null);
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const pathRef = useRef<Point[]>([]);
   const bubbleId = useRef(0);
-  const lastStateSent = useRef<{ x: number; y: number; direction: number; walking: boolean } | null>(null);
+  const lastStateSent = useRef<{ x: number; y: number; direction: number; walking: boolean; sitting?: boolean } | null>(null);
+
 
   // Walk animation loop
   useEffect(() => {
@@ -57,7 +77,7 @@ export function IsoRoom({
       
       if (!next) {
         setWalking(false);
-        const finalState = { x: pos.x, y: pos.y, direction, walking: false };
+        const finalState = { x: pos.x, y: pos.y, direction, walking: false, sitting: isSitting };
         onStateChange?.(finalState);
         lastStateSent.current = finalState;
         return;
@@ -89,12 +109,12 @@ export function IsoRoom({
         setDirection(newDir);
         onPositionChange?.(next.x, next.y);
         
-        const newState = { x: next.x, y: next.y, direction: newDir, walking: true };
+        const newState = { x: next.x, y: next.y, direction: newDir, walking: true, sitting: false };
         if (JSON.stringify(lastStateSent.current) !== JSON.stringify(newState)) {
           onStateChange?.(newState);
           lastStateSent.current = newState;
         }
-        
+        setIsSitting(false);
         return next;
       });
     }, 240); // Slightly slower to match the interpolation
@@ -121,12 +141,51 @@ export function IsoRoom({
   }, []);
 
   const handleTileClick = (x: number, y: number) => {
+    if (isEditMode) {
+      // Logic for moving selected furniture could go here
+      return;
+    }
     const path = findPath(pos, { x, y }, width, height);
     if (!path.length) return;
     pathRef.current = path;
     setWalking(true);
-    onStateChange?.({ x: pos.x, y: pos.y, direction, walking: true });
+    setIsSitting(false);
+    onStateChange?.({ x: pos.x, y: pos.y, direction, walking: true, sitting: false });
   };
+
+  const handleFurniClick = (e: React.MouseEvent, f: Furniture) => {
+    e.stopPropagation();
+    if (isEditMode) {
+      onFurnitureClick?.(f);
+      return;
+    }
+
+    if (f.type === 'chair' || f.type === 'sofa') {
+      // Walk to it then sit
+      const path = findPath(pos, { x: f.x, y: f.y }, width, height);
+      if (path.length > 0) {
+        pathRef.current = path;
+        setWalking(true);
+        // We'll set sitting=true when we arrive
+      } else if (pos.x === f.x && pos.y === f.y) {
+        setIsSitting(true);
+        setDirection(f.direction as any);
+        onStateChange?.({ x: pos.x, y: pos.y, direction: f.direction as any, walking: false, sitting: true });
+      }
+    }
+  };
+
+  // Add a specific arrival check in the walk loop
+  useEffect(() => {
+    if (!walking && !pathRef.current.length) {
+      // Check if we are on a seat
+      const seat = furniture.find(f => f.x === pos.x && f.y === pos.y && (f.type === 'chair' || f.type === 'sofa'));
+      if (seat) {
+        setIsSitting(true);
+        setDirection(seat.direction as any);
+      }
+    }
+  }, [walking, pos, furniture]);
 
   const sendChat = (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,6 +293,31 @@ export function IsoRoom({
             }),
           )}
 
+          {/* furniture */}
+          {furniture
+            .sort((a, b) => (a.x + a.y) - (b.x + b.y))
+            .map((f) => (
+              <div
+                key={f.id}
+                className="iso-furniture"
+                onClick={(e) => handleFurniClick(e, f)}
+                style={{
+                  ...tileStyle(f.x, f.y),
+                  zIndex: f.x + f.y + (f.type === 'rug' ? 0 : 5),
+                  pointerEvents: "auto",
+                  cursor: isEditMode ? "move" : "pointer"
+                }}
+              >
+                <div className="flex items-center justify-center w-full h-full text-4xl select-none">
+                  {f.type === 'chair' && '🪑'}
+                  {f.type === 'table' && '🧱'}
+                  {f.type === 'plant' && '🌵'}
+                  {f.type === 'sofa' && '🛋️'}
+                  {f.type === 'rug' && '🧶'}
+                </div>
+              </div>
+            ))}
+
           {/* other players */}
           {[...Object.values(others)]
             .sort((a, b) => (a.x + a.y) - (b.x + b.y))
@@ -250,15 +334,17 @@ export function IsoRoom({
                   <div
                     className="iso-avatar"
                     data-walking={other.walking}
+                    data-sitting={other.sitting}
                     style={{
                       left: oLeft,
                       top: oTop,
                       marginLeft: -20,
-                      marginTop: -60,
+                      marginTop: other.sitting ? -45 : -60,
                       transition: "all 0.22s linear", // Client-side prediction / interpolation
                       zIndex: other.x + other.y + 10,
                     }}
                   >
+
                     <div style={{ position: "relative" }}>
                       <div
                         style={{
@@ -294,14 +380,16 @@ export function IsoRoom({
           <div
             className="iso-avatar"
             data-walking={walking}
+            data-sitting={isSitting}
             style={{
               left: avatarLeft,
               top: avatarTop,
               marginLeft: -20,
-              marginTop: -60,
+              marginTop: isSitting ? -45 : -60,
               zIndex: pos.x + pos.y + 11,
             }}
           >
+
             <div style={{ position: "relative" }}>
               {/* Chat bubbles + name plate live inside so they get counter-rotated with the avatar */}
               <div
@@ -331,6 +419,17 @@ export function IsoRoom({
           </div>
         </div>
       </div>
+
+      {/* Debug Panel */}
+      {isDebug && (
+        <div className="absolute top-20 left-4 bg-black/70 text-green-400 p-3 text-[10px] font-mono z-50 rounded border border-green-400/30">
+          <div>POS: {pos.x}, {pos.y}</div>
+          <div>DIR: {direction}</div>
+          <div>WALK: {walking ? 'YES' : 'NO'}</div>
+          <div>SIT: {isSitting ? 'YES' : 'NO'}</div>
+          <div>PATH: {pathRef.current.length} steps left</div>
+        </div>
+      )}
 
       {/* HUD */}
       <div className="w-full max-w-2xl panel p-3 flex items-center gap-3 relative z-10">
