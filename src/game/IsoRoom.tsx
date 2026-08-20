@@ -21,6 +21,7 @@ export function IsoRoom({
   onStateChange,
   onChatSent,
   externalBubbles = [],
+  unlockTrigger,
 }: {
   width?: number;
   height?: number;

@@ -29,13 +29,12 @@ export function useMultiplayer(
 ) {
   const [players, setPlayers] = useState<Record<string, PlayerState>>({});
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const lastSentStateRef = useRef<string>("");
 
   const updateMyState = useCallback((state: Partial<PlayerState>) => {
     if (!channelRef.current || !myProfile) return;
     
-    // Use state values if provided, otherwise fall back to current known values
-    // This allows partial updates without resetting the whole state
-    channelRef.current.track({
+    const newState = {
       id: myProfile.id,
       habbo_name: myProfile.habbo_name,
       figure: myProfile.figure,
@@ -44,6 +43,15 @@ export function useMultiplayer(
       y: typeof state.y === 'number' ? state.y : initialPos.y,
       direction: typeof state.direction === 'number' ? state.direction : 0,
       walking: typeof state.walking === 'boolean' ? state.walking : false,
+    };
+
+    // Compression: Only send if essential fields changed
+    const stateKey = `${newState.x},${newState.y},${newState.direction},${newState.walking}`;
+    if (stateKey === lastSentStateRef.current) return;
+    lastSentStateRef.current = stateKey;
+
+    channelRef.current.track({
+      ...newState,
       lastUpdate: Date.now(),
     });
   }, [myProfile, initialPos.x, initialPos.y]);
