@@ -34,6 +34,7 @@ export function IsoRoom({
   onStateChange?: (state: { x: number; y: number; direction: number; walking: boolean }) => void;
   onChatSent?: (text: string) => void;
   externalBubbles?: ChatBubble[];
+  unlockTrigger?: number;
 }) {
   const [pos, setPos] = useState<Point>({ x: startX, y: startY });
   const [direction, setDirection] = useState<0|1|2|3|4|5|6|7>(0);
@@ -75,6 +76,16 @@ export function IsoRoom({
     }, 220);
     return () => clearInterval(timer);
   }, [walking, onPositionChange, onStateChange, pos.x, pos.y, direction]);
+  
+  // Handle external unlock trigger
+  useEffect(() => {
+    if (unlockTrigger) {
+      setWalking(false);
+      pathRef.current = [];
+      // Force position to stay where it is but stop movement
+      onStateChange?.({ x: pos.x, y: pos.y, direction, walking: false });
+    }
+  }, [unlockTrigger]);
 
   // Clean expired bubbles
   useEffect(() => {
@@ -220,7 +231,7 @@ export function IsoRoom({
                       top: oTop,
                       marginLeft: -20,
                       marginTop: -60,
-                      transition: "all 0.22s linear",
+                      transition: "all 0.22s linear", // Client-side prediction / interpolation
                       zIndex: other.x + other.y + 10,
                     }}
                   >
