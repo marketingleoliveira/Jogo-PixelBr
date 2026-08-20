@@ -17,6 +17,8 @@ import { z } from "zod";
 
 const roomSearchSchema = z.object({
   owner: z.string().optional(),
+  w: z.number().optional().default(10),
+  h: z.number().optional().default(10),
 });
 
 export const Route = createFileRoute("/_authenticated/room")({
@@ -26,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/room")({
 
 function RoomPage() {
   const navigate = useNavigate();
-  const { owner } = useSearch({ from: "/_authenticated/room" });
+  const { owner, w, h } = useSearch({ from: "/_authenticated/room" });
   const fetchProfile = useServerFn(getMyProfile);
   const savePos = useServerFn(saveLastPosition);
   const saveProfileAvatar = useServerFn(saveAvatar);
@@ -239,6 +241,8 @@ function RoomPage() {
       
       <div className="flex-1 relative">
         <IsoRoom
+          width={w}
+          height={h}
           figure={profile.figure}
           habboName={profile.habbo_name}
           motto={profile.motto}

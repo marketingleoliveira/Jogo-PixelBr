@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AvatarSprite, type Figure, directionFromDelta } from "./avatar";
 import { toast } from "sonner";
 import { findPath, type Point } from "./pathfind";
-import { getLinePoints } from "./movement.utils";
+import { getLinePoints, canPlaceFurniture } from "./movement.utils";
 
 export type Furniture = {
   id: string;
@@ -148,9 +148,16 @@ export function IsoRoom({
 
   const handleTileClick = (x: number, y: number) => {
     if (isEditMode) {
-      // Logic for moving selected furniture could go here
       return;
     }
+    
+    // Grid snapping/Collision check for walking
+    const isBlocked = furniture.some(f => f.x === x && f.y === y && f.type !== 'rug');
+    if (isBlocked) {
+      toast.error("Caminho bloqueado!");
+      return;
+    }
+
     const path = findPath(pos, { x, y }, width, height);
     if (!path.length) return;
     pathRef.current = path;
