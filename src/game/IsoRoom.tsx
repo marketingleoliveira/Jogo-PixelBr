@@ -50,6 +50,7 @@ export function IsoRoom({
     if (!walking) return;
     const timer = setInterval(() => {
       const next = pathRef.current.shift();
+      
       if (!next) {
         setWalking(false);
         const finalState = { x: pos.x, y: pos.y, direction, walking: false };
@@ -57,6 +58,7 @@ export function IsoRoom({
         lastStateSent.current = finalState;
         return;
       }
+
       setPos((prev) => {
         const newDir = directionFromDelta(next.x - prev.x, next.y - prev.y);
         setDirection(newDir);
