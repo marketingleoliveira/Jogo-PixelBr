@@ -72,7 +72,7 @@ export function IsoRoom({
       });
     }, 220);
     return () => clearInterval(timer);
-  }, [walking, onPositionChange, onStateChange]);
+  }, [walking, onPositionChange, onStateChange, pos.x, pos.y, direction]);
 
   // Clean expired bubbles
   useEffect(() => {
