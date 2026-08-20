@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AvatarSprite, type Figure, directionFromDelta } from "./avatar";
+import { toast } from "sonner";
 import { findPath, type Point } from "./pathfind";
-import { getLinePoints } from "./movement.utils";
+import { getLinePoints, canPlaceFurniture } from "./movement.utils";
 
 export type Furniture = {
   id: string;
@@ -36,6 +37,8 @@ export function IsoRoom({
   isDebug = false,
   isEditMode = false,
   onFurnitureMove,
+  onFurnitureRotate,
+  onEmote,
 }: {
   width?: number;
   height?: number;
@@ -48,6 +51,7 @@ export function IsoRoom({
   others?: Record<string, any>;
   onStateChange?: (state: { x: number; y: number; direction: number; walking: boolean; sitting: boolean }) => void;
   onChatSent?: (text: string) => void;
+  onEmote?: (emote: string | null) => void;
   externalBubbles?: ChatBubble[];
   unlockTrigger?: number;
   furniture?: Furniture[];
@@ -55,12 +59,14 @@ export function IsoRoom({
   isDebug?: boolean;
   isEditMode?: boolean;
   onFurnitureMove?: (id: string, x: number, y: number) => void;
+  onFurnitureRotate?: (id: string, dir: number) => void;
 }) {
   const [pos, setPos] = useState<Point>({ x: startX, y: startY });
   const [direction, setDirection] = useState<0|1|2|3|4|5|6|7>(0);
   const [walking, setWalking] = useState(false);
   const [isSitting, setIsSitting] = useState(false);
   const [hoverTile, setHoverTile] = useState<Point | null>(null);
+  const [currentEmote, setCurrentEmote] = useState<string | null>(null);
   const [bubbles, setBubbles] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
   const pathRef = useRef<Point[]>([]);
@@ -142,9 +148,16 @@ export function IsoRoom({
 
   const handleTileClick = (x: number, y: number) => {
     if (isEditMode) {
-      // Logic for moving selected furniture could go here
       return;
     }
+    
+    // Grid snapping/Collision check for walking
+    const isBlocked = furniture.some(f => f.x === x && f.y === y && f.type !== 'rug');
+    if (isBlocked) {
+      toast.error("Caminho bloqueado!");
+      return;
+    }
+
     const path = findPath(pos, { x, y }, width, height);
     if (!path.length) return;
     pathRef.current = path;
@@ -189,10 +202,39 @@ export function IsoRoom({
 
   const sendChat = (e: React.FormEvent) => {
     e.preventDefault();
-    const text = input.trim();
+    const text = input.trim().toLowerCase();
     if (!text) return;
-    setBubbles((b) => [...b, { id: ++bubbleId.current, text: text.slice(0, 120), ts: Date.now() }]);
-    onChatSent?.(text.slice(0, 120));
+
+    if (text === "/dance" || text === ":dance") {
+      const e = currentEmote === "dance" ? null : "dance";
+      setCurrentEmote(e);
+      onEmote?.(e);
+      setInput("");
+      return;
+    }
+    if (text === "/wave" || text === ":wave") {
+      const e = currentEmote === "wave" ? null : "wave";
+      setCurrentEmote(e);
+      onEmote?.(e);
+      setInput("");
+      return;
+    }
+    if (text === "/jump" || text === ":jump") {
+      const e = currentEmote === "jump" ? null : "jump";
+      setCurrentEmote(e);
+      onEmote?.(e);
+      setInput("");
+      return;
+    }
+    if (text === "/stop") {
+      setCurrentEmote(null);
+      onEmote?.(null);
+      setInput("");
+      return;
+    }
+
+    setBubbles((b) => [...b, { id: ++bubbleId.current, text: input.trim().slice(0, 120), ts: Date.now() }]);
+    onChatSent?.(input.trim().slice(0, 120));
     setInput("");
   };
 
@@ -299,20 +341,25 @@ export function IsoRoom({
             .map((f) => (
               <div
                 key={f.id}
-                className="iso-furniture"
+                className={`iso-furniture ${isEditMode ? 'cursor-move hover:ring-2 ring-white/50' : ''}`}
                 onClick={(e) => handleFurniClick(e, f)}
+                onContextMenu={(e) => {
+                  if (isEditMode) {
+                    e.preventDefault();
+                    onFurnitureRotate?.(f.id, (f.direction + 2) % 8);
+                  }
+                }}
                 style={{
                   ...tileStyle(f.x, f.y),
                   zIndex: f.x + f.y + (f.type === 'rug' ? 0 : 5),
                   pointerEvents: "auto",
-                  cursor: isEditMode ? "move" : "pointer"
                 }}
               >
                 <div className="flex items-center justify-center w-full h-full text-4xl select-none">
-                  {f.type === 'chair' && '🪑'}
+                  {f.type === 'chair' && (f.direction === 0 ? '🪑' : '🛋️')}
                   {f.type === 'table' && '🧱'}
                   {f.type === 'plant' && '🌵'}
-                  {f.type === 'sofa' && '🛋️'}
+                  {f.type === 'sofa' && (f.direction === 0 ? '🛋️' : '🛏️')}
                   {f.type === 'rug' && '🧶'}
                 </div>
               </div>
@@ -365,7 +412,9 @@ export function IsoRoom({
                           </div>
                         ))}
                       </div>
-                      <AvatarSprite figure={other.figure} direction={other.direction} size={40} />
+                      <div className={other.emote ? `avatar-${other.emote}` : ""}>
+                        <AvatarSprite figure={other.figure} direction={other.direction} size={40} />
+                      </div>
                       <div className="habbo-name-plate">
                         {other.habbo_name}
                       </div>
@@ -411,7 +460,9 @@ export function IsoRoom({
                   </div>
                 ))}
               </div>
-              <AvatarSprite figure={figure} direction={direction} size={40} />
+              <div className={currentEmote ? `avatar-${currentEmote}` : ""}>
+                <AvatarSprite figure={figure} direction={direction} size={40} />
+              </div>
               <div className="habbo-name-plate">
                 {habboName}
               </div>

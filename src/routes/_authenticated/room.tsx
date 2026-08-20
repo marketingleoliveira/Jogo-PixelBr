@@ -11,12 +11,14 @@ import { Tutorial } from "@/game/Tutorial";
 import { Shop } from "@/game/Shop";
 import { AvatarEditor } from "@/game/AvatarEditor";
 import { rewardTimeCoins } from "@/lib/shop.functions";
-import { getRoomFurniture, pickupFurniture, placeFurniture } from "@/lib/furniture.functions";
+import { getRoomFurniture, pickupFurniture, placeFurniture, rotateFurniture, moveFurniture } from "@/lib/furniture.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const roomSearchSchema = z.object({
   owner: z.string().optional(),
+  w: z.number().optional().default(10),
+  h: z.number().optional().default(10),
 });
 
 export const Route = createFileRoute("/_authenticated/room")({
@@ -26,12 +28,14 @@ export const Route = createFileRoute("/_authenticated/room")({
 
 function RoomPage() {
   const navigate = useNavigate();
-  const { owner } = useSearch({ from: "/_authenticated/room" });
+  const { owner, w, h } = useSearch({ from: "/_authenticated/room" });
   const fetchProfile = useServerFn(getMyProfile);
   const savePos = useServerFn(saveLastPosition);
   const saveProfileAvatar = useServerFn(saveAvatar);
   const fetchFurniture = useServerFn(getRoomFurniture);
   const doPickup = useServerFn(pickupFurniture);
+  const doRotate = useServerFn(rotateFurniture);
+  const doMove = useServerFn(moveFurniture);
   
   const [profile, setProfile] = useState<null | {
     id: string; habbo_name: string; motto: string; figure: Figure; last_x: number; last_y: number; onboarded: boolean; coins?: number; gender?: string;
@@ -47,6 +51,7 @@ function RoomPage() {
   const [showTutorial, setShowTutorial] = useState(false);
   const saveTimer = useRef<number | null>(null);
   const [unlockTrigger, setUnlockTrigger] = useState(0);
+  const [selectedFurni, setSelectedFurni] = useState<string | null>(null);
   const rewardFn = useServerFn(rewardTimeCoins);
 
 
@@ -172,6 +177,15 @@ function RoomPage() {
     }
   };
 
+  const handleFurnitureRotate = async (id: string, dir: number) => {
+    try {
+      await doRotate({ data: { roomFurnitureId: id, direction: dir } });
+      refreshFurniture();
+    } catch (e) {
+      toast.error("Erro ao rotacionar");
+    }
+  };
+
   const finishTutorial = () => {
     setShowTutorial(false);
     localStorage.setItem('ph_tutorial_seen', 'true');
@@ -227,6 +241,8 @@ function RoomPage() {
       
       <div className="flex-1 relative">
         <IsoRoom
+          width={w}
+          height={h}
           figure={profile.figure}
           habboName={profile.habbo_name}
           motto={profile.motto}
@@ -240,6 +256,8 @@ function RoomPage() {
           unlockTrigger={unlockTrigger}
           furniture={roomFurniture}
           onFurnitureClick={handleFurnitureClick}
+          onFurnitureRotate={handleFurnitureRotate}
+          onEmote={(e) => updateMyState({ emote: e } as any)}
           isDebug={isDebugMode}
           isEditMode={isEditMode}
         />
@@ -269,6 +287,7 @@ function RoomPage() {
               refreshFurniture();
             }}
             roomId={activeRoomId}
+            furnitureInRoom={roomFurniture}
           />
         )}
 

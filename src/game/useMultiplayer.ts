@@ -12,6 +12,7 @@ export type PlayerState = {
   direction: number;
   walking: boolean;
   sitting: boolean;
+  emote: string | null;
   lastUpdate: number;
 };
 
@@ -53,10 +54,11 @@ export function useMultiplayer(
       direction: typeof state.direction === 'number' ? state.direction : 0,
       walking: typeof state.walking === 'boolean' ? state.walking : false,
       sitting: typeof (state as any).sitting === 'boolean' ? (state as any).sitting : false,
+      emote: (state as any).emote !== undefined ? (state as any).emote : null,
     };
 
     // Compression: Only send if essential fields changed
-    const stateKey = `${newState.x},${newState.y},${newState.direction},${newState.walking},${newState.sitting}`;
+    const stateKey = `${newState.x},${newState.y},${newState.direction},${newState.walking},${newState.sitting},${newState.emote}`;
 
     if (stateKey === lastSentStateRef.current) return;
     lastSentStateRef.current = stateKey;
@@ -135,10 +137,11 @@ export function useMultiplayer(
             direction: 0,
             walking: false,
             sitting: false,
+            emote: null,
             lastUpdate: Date.now(),
           });
           // Also set local ref to prevent immediate resend if nothing changed
-          lastSentStateRef.current = `${initialPos.x},${initialPos.y},0,false,false`;
+          lastSentStateRef.current = `${initialPos.x},${initialPos.y},0,false,false,null`;
         }
       });
 

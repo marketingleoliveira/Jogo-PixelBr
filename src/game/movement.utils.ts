@@ -34,3 +34,26 @@ export function getLinePoints(start: Point, end: Point): Point[] {
   }
   return points;
 }
+
+/**
+ * Checks if a furniture item can be placed at (x, y)
+ * avoiding collisions with other furniture and walls.
+ */
+export function canPlaceFurniture(
+  x: number, 
+  y: number, 
+  furniture: any[], 
+  roomId: string, 
+  roomWidth: number, 
+  roomHeight: number
+): boolean {
+  // 1. Boundary check
+  if (x < 0 || y < 0 || x >= roomWidth || y >= roomHeight) return false;
+
+  // 2. Collision with other furniture (excluding rugs which can be stepped on/under)
+  const isBlocked = furniture.some(f => 
+    f.x === x && f.y === y && f.type !== 'rug'
+  );
+
+  return !isBlocked;
+}
