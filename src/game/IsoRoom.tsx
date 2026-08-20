@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AvatarSprite, type Figure, directionFromDelta } from "./avatar";
 import { findPath, type Point } from "./pathfind";
+import { getLinePoints } from "./movement.utils";
 
 const TILE_W = 48;
 const TILE_H = 48;
@@ -51,7 +52,8 @@ export function IsoRoom({
   useEffect(() => {
     if (!walking) return;
     const timer = setInterval(() => {
-      const next = pathRef.current.shift();
+      // Get current path step
+      const next = pathRef.current[0];
       
       if (!next) {
         setWalking(false);
@@ -60,6 +62,27 @@ export function IsoRoom({
         lastStateSent.current = finalState;
         return;
       }
+
+      // Check if next tile is actually reachable (adjacent)
+      const dx = Math.abs(next.x - pos.x);
+      const dy = Math.abs(next.y - pos.y);
+      
+      // If the character is "jumping" (not adjacent), recalculate path from current real position
+      if (dx > 1 || dy > 1) {
+        console.warn("Movement gap detected, recalculating path");
+        const newPath = findPath(pos, pathRef.current[pathRef.current.length - 1], width, height);
+        if (newPath.length) {
+          pathRef.current = newPath;
+          return; // Wait for next tick
+        } else {
+          setWalking(false);
+          pathRef.current = [];
+          return;
+        }
+      }
+
+      // Remove the step we are about to take
+      pathRef.current.shift();
 
       setPos((prev) => {
         const newDir = directionFromDelta(next.x - prev.x, next.y - prev.y);
@@ -74,9 +97,9 @@ export function IsoRoom({
         
         return next;
       });
-    }, 220);
+    }, 240); // Slightly slower to match the interpolation
     return () => clearInterval(timer);
-  }, [walking, onPositionChange, onStateChange, pos.x, pos.y, direction]);
+  }, [walking, onPositionChange, onStateChange, pos.x, pos.y, direction, width, height]);
   
   // Handle external unlock trigger
   useEffect(() => {
