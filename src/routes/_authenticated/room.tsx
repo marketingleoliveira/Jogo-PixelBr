@@ -287,6 +287,7 @@ function RoomPage() {
               refreshFurniture();
             }}
             roomId={activeRoomId}
+            furnitureInRoom={roomFurniture}
           />
         )}
 

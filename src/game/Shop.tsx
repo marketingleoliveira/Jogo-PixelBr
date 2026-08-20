@@ -4,7 +4,7 @@ import { getFurnitureCatalog, buyFurniture, getMyInventory } from "@/lib/shop.fu
 import { placeFurniture } from "@/lib/furniture.functions";
 import { toast } from "sonner";
 
-export function Shop({ onClose, coins, onPurchase, roomId }: { onClose: () => void; coins: number; onPurchase: () => void; roomId: string }) {
+export function Shop({ onClose, coins, onPurchase, roomId, furnitureInRoom = [] }: { onClose: () => void; coins: number; onPurchase: () => void; roomId: string; furnitureInRoom?: any[] }) {
   const fetchCatalog = useServerFn(getFurnitureCatalog);
   const fetchInventory = useServerFn(getMyInventory);
   const doBuy = useServerFn(buyFurniture);
@@ -43,13 +43,34 @@ export function Shop({ onClose, coins, onPurchase, roomId }: { onClose: () => vo
 
   const handlePlace = async (inventoryId: string) => {
     try {
-      // Place at a default location (e.g. 5,5) - normally we'd pick a location
+      // Find a free spot near 5,5 using grid snapping and collision avoidance
+      let targetX = 5;
+      let targetY = 5;
+      let found = false;
+
+      for (let dist = 0; dist < 5 && !found; dist++) {
+        for (let dy = -dist; dy <= dist; dy++) {
+          for (let dx = -dist; dx <= dist; dx++) {
+            const tx = 5 + dx;
+            const ty = 5 + dy;
+            const isBlocked = furnitureInRoom.some(f => f.x === tx && f.y === ty && f.type !== 'rug');
+            if (!isBlocked) {
+              targetX = tx;
+              targetY = ty;
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+      }
+
       await doPlace({ 
         data: { 
           inventoryId, 
           roomId, 
-          x: 5, 
-          y: 5,
+          x: targetX, 
+          y: targetY,
           direction: 0 
         } 
       });
